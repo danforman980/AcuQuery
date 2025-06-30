@@ -1,0 +1,5 @@
+dash==3.0.4
+dash-bootstrap-components==2.0.2
+dash_ag_grid==31.3.1
+pandas==2.2.3
+pdf2image==1.17.0
