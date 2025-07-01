@@ -5,4 +5,4 @@ pandas==2.2.3
 pdf2image==1.17.0
 gunicorn==20.1.0
 dash-uploader==0.7.0a1
-packaging==0.1.0
+packaging==21.3.0
