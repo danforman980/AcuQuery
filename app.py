@@ -15,8 +15,6 @@ import dash_bootstrap_components as dbc
 import sqlite3 as sql
 import dash_ag_grid as dag
 
-#DO MORE TESTING WITH 10006
-
 #function to select data from the database using the HGNC id as the key
 
 def sql_search(hgnc_id, db, file):
