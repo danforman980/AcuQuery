@@ -67,7 +67,7 @@ file_path = html.Div(dbc.FormFloating(
     )
 )
 
-target_button = dbc.Button("Search", id='target_button',className="me-1", n_clicks=0)
+target_button = dbc.Button("Search", id='target_button',className="me-1", n_clicks=0,  color='danger')
 test_button = dbc.Button("Search", id='tb',className="me-1", n_clicks=0)
 
 selection_column = dbc.Card(
