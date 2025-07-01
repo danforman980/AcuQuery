@@ -6,7 +6,7 @@ Created on Thu May 15 12:29:18 2025
 @author: DanielForman
 """
 
-from dash import Dash, html, callback, Output, Input, State, clientside_callback
+from dash import Dash, html, callback, Output, Input, State, clientside_callback, dcc
 import pandas as pd
 import webbrowser
 import dash_bootstrap_components as dbc
@@ -21,8 +21,8 @@ os.chdir('/Users/DanielForman/Documents/Database_work/AcuQuery')
 
 #function to select data from the database using the HGNC id as the key
 
-def sql_search(hgnc_id, db):
-    conn = sql.connect('acuquery_database.db')
+def sql_search(hgnc_id, db, file):
+    conn = sql.connect(file)
     cur = conn.cursor()
     data = pd.read_sql_query("SELECT * FROM "+db+" where HGNC_id = (" + "'HGNC:" + str(hgnc_id) + "'" + ")", conn)
     return(data)
@@ -54,12 +54,21 @@ tsa_target = html.Div(dbc.FormFloating(
     )
 )
 
+file_path = html.Div(dbc.FormFloating(
+    [
+        dbc.Input(id="file_path", placeholder="", type = 'text'),
+        dbc.Label(children = "Enter File Path") 
+        ]
+    )
+)
+
 target_button = dbc.Button("Search", id='target_button',className="me-1", n_clicks=0)
 test_button = dbc.Button("Search", id='tb',className="me-1", n_clicks=0)
 
 selection_column = dbc.Card(
     [ 
     dbc.Row([dbc.Col(tsa_target, width=8), dbc.Col(target_button, width=4)], align="center"),
+    dbc.Row(dbc.Col(file_path, width=8)),
     dbc.Row(html.Br())
     ],
     className="border-0",
@@ -181,16 +190,17 @@ app.layout = dbc.Card(dbc.Col(
     Output("ID_table_2", "children"),
     Output("ID_table_3", "children"),
     State("tsa_target", "value"),
+    State("file_path", "value"),
     Input("target_button", "n_clicks"),
 )
-def gene_ID_Tables(tsa_target, n_clicks):
+def gene_ID_Tables(tsa_target, file, n_clicks):
     if n_clicks:
         try:
             #getting the appropriate data from the database using the query functions
-            gene_data = sql_search(tsa_target, 'gene_info')
-            corpus_sizes = sql_search(tsa_target, 'corpus_sizes')
+            gene_data = sql_search(tsa_target, 'gene_info', file)
+            corpus_sizes = sql_search(tsa_target, 'corpus_sizes',file)
             corpus_sizes = corpus_sizes.drop(columns=['HGNC_id'])
-            ID_data = sql_search(tsa_target, 'gene_IDs')
+            ID_data = sql_search(tsa_target, 'gene_IDs',file)
             
         except:
             return("No Data Found"," "," ","No Data Found"," ", " ")
@@ -278,43 +288,44 @@ def gene_ID_Tables(tsa_target, n_clicks):
 @callback(
     Output("ortho_table", "children"), 
     State("tsa_target", "value"),
+    State("file_path", "value"),
     Input("target_info", 'active_tab'),
-    Input("target_button", "n_clicks")
+    Input("target_button", "n_clicks"),
 )
 
-def orthologues_render(tsa_target, active_tab, n_clicks):
+def orthologues_render(tsa_target, file, active_tab, n_clicks):
     if ((active_tab == 'ortho_card') or (active_tab == 'ortho_card' and n_clicks)):
         ortho_human = sql_search(tsa_target, 'ortho_human')
         ortho_human = ortho_human.iloc[:, 2:]
         
-        ortho_sus_scrofa = sql_search(tsa_target, 'ortho_sus_scrofa')
+        ortho_sus_scrofa = sql_search(tsa_target, 'ortho_sus_scrofa', file)
         ortho_sus_scrofa = ortho_sus_scrofa.iloc[:, 2:]
         
-        ortho_rattus_norvegicus = sql_search(tsa_target, 'ortho_rattus_norvegicus')
+        ortho_rattus_norvegicus = sql_search(tsa_target, 'ortho_rattus_norvegicus', file)
         ortho_rattus_norvegicus = ortho_rattus_norvegicus.iloc[:, 2:]
      
-        ortho_oryctolagus_cuniculus = sql_search(tsa_target, 'ortho_oryctolagus_cuniculus')
+        ortho_oryctolagus_cuniculus = sql_search(tsa_target, 'ortho_oryctolagus_cuniculus', file)
         ortho_oryctolagus_cuniculus = ortho_oryctolagus_cuniculus.iloc[:, 2:]
       
-        ortho_mus_musculus = sql_search(tsa_target, 'ortho_mus_musculus')
+        ortho_mus_musculus = sql_search(tsa_target, 'ortho_mus_musculus', file)
         ortho_mus_musculus = ortho_mus_musculus.iloc[:, 2:]
         
-        ortho_macaca_mulatta = sql_search(tsa_target, 'ortho_macaca_mulatta')
+        ortho_macaca_mulatta = sql_search(tsa_target, 'ortho_macaca_mulatta', file)
         ortho_macaca_mulatta = ortho_macaca_mulatta.iloc[:, 2:]
        
-        ortho_macaca_fascicularis = sql_search(tsa_target, 'ortho_macaca_fascicularis')
+        ortho_macaca_fascicularis = sql_search(tsa_target, 'ortho_macaca_fascicularis', file)
         ortho_macaca_fascicularis = ortho_macaca_fascicularis.iloc[:, 2:]
       
-        ortho_danio_rerio = sql_search(tsa_target, 'ortho_danio_rerio')
+        ortho_danio_rerio = sql_search(tsa_target, 'ortho_danio_rerio', file)
         ortho_danio_rerio = ortho_danio_rerio.iloc[:, 2:]
         
-        ortho_cavia_porcellus = sql_search(tsa_target, 'ortho_cavia_porcellus')
+        ortho_cavia_porcellus = sql_search(tsa_target, 'ortho_cavia_porcellus', file)
         ortho_cavia_porcellus = ortho_cavia_porcellus.iloc[:, 2:]
       
-        ortho_canis_lupus_familiaris = sql_search(tsa_target, 'ortho_canis_lupus_familiaris')
+        ortho_canis_lupus_familiaris = sql_search(tsa_target, 'ortho_canis_lupus_familiaris', file)
         ortho_canis_lupus_familiaris = ortho_canis_lupus_familiaris.iloc[:, 2:]
        
-        ortho_callithrix_jacchus = sql_search(tsa_target, 'ortho_callithrix_jacchus')
+        ortho_callithrix_jacchus = sql_search(tsa_target, 'ortho_callithrix_jacchus', file)
         ortho_callithrix_jacchus = ortho_callithrix_jacchus.iloc[:, 2:]
         
         ortho = []
@@ -357,13 +368,14 @@ def orthologues_render(tsa_target, active_tab, n_clicks):
 @callback(
     Output("protein_isoform_table", "children"), 
     State("tsa_target", "value"),
+    State("file_path", "value"),
     Input("target_info", 'active_tab'),
-    Input("target_button", "n_clicks")
+    Input("target_button", "n_clicks"),
 )
 
-def get_isoforms(tsa_target, active_tab, n_clicks):
+def get_isoforms(tsa_target, file, active_tab, n_clicks):
     if ((active_tab == 'protein_isoform_card') or (active_tab == 'protein_isoform_card' and n_clicks)): 
-        isoforms_txt = sql_search(tsa_target, 'protein_isoforms')
+        isoforms_txt = sql_search(tsa_target, 'protein_isoforms', file)
         
         if len(isoforms_txt) == 0:
             return("No Isoform Data Found")
@@ -404,23 +416,23 @@ def get_isoforms(tsa_target, active_tab, n_clicks):
         
         return(isoforms)
    
-@callback(
-    Output("Protein_Expression_Plot", "src"),
-    Output("Immune_Plot", "src"),
-    Output("SingleCell_RNAseq_Plot", "src"),
-    Output("Human_Bulk_RNAseq_Plot", "src"), 
-    Output("Cancer_Expression_Plot", "src"), 
-    State("tsa_target", "value"),
-    Input("target_button", "n_clicks"),
-)
-def get_plots(tsa_target, n_clicks):
-    PEP = convert_from_path('/Users/DanielForman/Downloads/Plots_testing/HGNC_20_AARS1/AARS1/AARS1_IHC_protein_expression_plot.pdf')
-    IP = convert_from_path('/Users/DanielForman/Downloads/Plots_testing/HGNC_20_AARS1/AARS1/AARS1_immune_plot.pdf')
-    SCRP = convert_from_path('/Users/DanielForman/Downloads/Plots_testing/HGNC_20_AARS1/AARS1/AARS1_scRNAseq_plot.pdf')
-    CEP = convert_from_path('/Users/DanielForman/Downloads/Plots_testing/HGNC_20_AARS1/AARS1/cancer_expression_plot_ENSG00000090861.pdf')
-    HBRP = convert_from_path('/Users/DanielForman/Downloads/Plots_testing/HGNC_20_AARS1/AARS1/Human_Bulk_RNAseq_plot_AARS1.pdf')
+#@callback(
+#    Output("Protein_Expression_Plot", "src"),
+#    Output("Immune_Plot", "src"),
+#    Output("SingleCell_RNAseq_Plot", "src"),
+#    Output("Human_Bulk_RNAseq_Plot", "src"), 
+#    Output("Cancer_Expression_Plot", "src"), 
+#    State("tsa_target", "value"),
+#    Input("target_button", "n_clicks"),
+#)
+#def get_plots(tsa_target, n_clicks):
+#    PEP = convert_from_path('/Users/DanielForman/Downloads/Plots_testing/HGNC_20_AARS1/AARS1/AARS1_IHC_protein_expression_plot.pdf')
+#    IP = convert_from_path('/Users/DanielForman/Downloads/Plots_testing/HGNC_20_AARS1/AARS1/AARS1_immune_plot.pdf')
+#    SCRP = convert_from_path('/Users/DanielForman/Downloads/Plots_testing/HGNC_20_AARS1/AARS1/AARS1_scRNAseq_plot.pdf')
+#    CEP = convert_from_path('/Users/DanielForman/Downloads/Plots_testing/HGNC_20_AARS1/AARS1/cancer_expression_plot_ENSG00000090861.pdf')
+#    HBRP = convert_from_path('/Users/DanielForman/Downloads/Plots_testing/HGNC_20_AARS1/AARS1/Human_Bulk_RNAseq_plot_AARS1.pdf')
         
-    return(PEP, IP, SCRP, CEP, HBRP)
+#    return(PEP, IP, SCRP, CEP, HBRP)
     
 clientside_callback(
     """ 
