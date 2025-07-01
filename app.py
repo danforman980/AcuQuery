@@ -17,8 +17,6 @@ import os
 
 #DO MORE TESTING WITH 10006
 
-os.chdir('/Users/DanielForman/Documents/Database_work/AcuQuery')
-
 #function to select data from the database using the HGNC id as the key
 
 def sql_search(hgnc_id, db, file):
