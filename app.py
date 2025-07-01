@@ -295,7 +295,7 @@ def gene_ID_Tables(tsa_target, file, n_clicks):
 
 def orthologues_render(tsa_target, file, active_tab, n_clicks):
     if ((active_tab == 'ortho_card') or (active_tab == 'ortho_card' and n_clicks)):
-        ortho_human = sql_search(tsa_target, 'ortho_human')
+        ortho_human = sql_search(tsa_target, 'ortho_human', file)
         ortho_human = ortho_human.iloc[:, 2:]
         
         ortho_sus_scrofa = sql_search(tsa_target, 'ortho_sus_scrofa', file)
