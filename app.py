@@ -7,13 +7,13 @@ Created on Thu May 15 12:29:18 2025
 """
 
 from dash import Dash, html, callback, Output, Input, State, clientside_callback, dcc
+import dash_uploader as du
+import uuid
 import pandas as pd
 import webbrowser
 import dash_bootstrap_components as dbc
 import sqlite3 as sql
 import dash_ag_grid as dag
-from pdf2image import convert_from_path
-import os
 
 #DO MORE TESTING WITH 10006
 
@@ -31,7 +31,16 @@ dbc_css = "https://cdn.jsdelivr.net/gh/AnnMarieW/dash-bootstrap-templates/dbc.mi
 app = Dash(__name__, external_stylesheets=[dbc.themes.JOURNAL, dbc_css], suppress_callback_exceptions=False)
 server = app.server
 
+du.configure_upload(app, r"C:\tmp\Uploads")
 imgURL = 'https://www.apconix.com/wp-content/uploads/2018/12/apconix-logo-wstrap.png'
+
+def get_upload_component(id):
+    return du.Upload(
+        id=id,
+        max_file_size=1800,  # 1800 MB
+        filetypes=['db'],
+        upload_id=uuid.uuid1(),  # Unique session id
+    )
 
 #dark mode option (unused right now)
 color_mode_switch =  html.Span(
@@ -47,7 +56,7 @@ color_mode_switch =  html.Span(
 tsa_target = html.Div(dbc.FormFloating(
     [
         dbc.Input(id="tsa_target", placeholder="", type = 'text'),
-        dbc.Label(children = "Enter HGNC ID") 
+        dbc.Label(children = "Enter HGNC ID"),
         ]
     )
 )
@@ -66,8 +75,21 @@ test_button = dbc.Button("Search", id='tb',className="me-1", n_clicks=0)
 selection_column = dbc.Card(
     [ 
     dbc.Row([dbc.Col(tsa_target, width=8), dbc.Col(target_button, width=4)], align="center"),
-    dbc.Row(dbc.Col(file_path, width=8)),
-    dbc.Row(html.Br())
+    dbc.Row(dbc.Col(html.Div(
+            html.Div(
+                children=[
+                    get_upload_component("upload_data"),
+                    dcc.Store(
+                        id="temp_file_loc",
+                    ),
+                ],
+            ),
+            style={
+        'width': '100%',
+        'height': '1%',
+    }), width=8)),
+    dbc.Row(html.Br()),
+    dbc.Row(html.Div(id='test'))
     ],
     className="border-0",
     
@@ -180,6 +202,14 @@ app.layout = dbc.Card(dbc.Col(
 
 #function to get basic gene data from the database before generating the required tables
 
+@du.callback(
+    output=Output("temp_file_loc", "data"),
+    id="upload_data",
+)
+def callback_on_completion(status: du.UploadStatus):
+    
+    return str(status.uploaded_files[0])
+
 @callback(
     Output("gene_table_1", "children"),
     Output("gene_table_2", "children"),
@@ -188,7 +218,7 @@ app.layout = dbc.Card(dbc.Col(
     Output("ID_table_2", "children"),
     Output("ID_table_3", "children"),
     State("tsa_target", "value"),
-    State("file_path", "value"),
+    State("temp_file_loc", "data"),
     Input("target_button", "n_clicks"),
 )
 def gene_ID_Tables(tsa_target, file, n_clicks):
@@ -286,7 +316,7 @@ def gene_ID_Tables(tsa_target, file, n_clicks):
 @callback(
     Output("ortho_table", "children"), 
     State("tsa_target", "value"),
-    State("file_path", "value"),
+    State("temp_file_loc", "data"),
     Input("target_info", 'active_tab'),
     Input("target_button", "n_clicks"),
 )
@@ -366,7 +396,7 @@ def orthologues_render(tsa_target, file, active_tab, n_clicks):
 @callback(
     Output("protein_isoform_table", "children"), 
     State("tsa_target", "value"),
-    State("file_path", "value"),
+    State("temp_file_loc", "data"),
     Input("target_info", 'active_tab'),
     Input("target_button", "n_clicks"),
 )
